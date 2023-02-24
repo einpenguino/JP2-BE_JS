@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Models
+// model Post {
+//   id        Int      @id @default(autoincrement())
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   title     String   @db.VarChar(255)
+//   content   String?
+//   published Boolean  @default(false)
+//   author    User     @relation(fields: [authorId], references: [id])
+//   authorId  Int
+// }
+
+model Profile {
+  id     Int     @id @default(autoincrement())
+  bio    String?
+  user   User    @relation(fields: [userId], references: [id])
+  userId Int     @unique
+}
+
+model Places {
+  id  Int @id @default(autoincrement())
+  address String
+  // alias String?
+  latitude Float?
+  longitude Float?
+  user_fk User[]
+  alias_fk Alias[]
+  route_start Routes[] @relation("start_rel")
+  route_end Routes[] @relation("end_rel")
+  // user_rel User @relation(fields:[user_fk], references:[id])
+  @@unique([address, latitude, longitude])
+}
+model Alias {
+  id  Int @id @default(autoincrement())
+  alias String
+  places_fk Int
+  user_fk Int
+  places_rel Places @relation(fields:[places_fk], references:[id])
+  user_rel User @relation(fields:[user_fk], references:[id])
+
+  @@unique([alias, places_fk,user_fk])
+}
+
+model Routes {
+  id Int @id @default(autoincrement())
+  start_id Int
+  end_id Int
+  user_fk Int
+  start_rel Places @relation("start_rel", fields:[start_id], references: [id])
+  end_rel Places @relation("end_rel", fields:[end_id], references: [id])
+  user_rel User? @relation(fields:[user_fk], references:[id])
+
+  @@unique([start_id, end_id, user_fk])
+}
+
+model User {
+  id      Int      @id @default(autoincrement())
+  email   String   @unique
+  username String  @unique
+  password  String
+  name    String?
+  places Places[]
+  place_aliases Alias[]
+  profile Profile?
+  routes  Int[] @default([])
+  routes_rel Routes[]
+  isAdmin Boolean? @default(false)
+}
+
+model Airtemp {
+  id      Int      @id @default(autoincrement())
+  timestamp DateTime
+  station_id String
+  value Float
+  // sensor_map Stations @relation(fields:[station_id], references: [device_id])
+
+  @@unique([timestamp, station_id])
+}
+
+model Humidity {
+  id      Int      @id @default(autoincrement())
+  timestamp DateTime
+  station_id String
+  value Float
+  // sensor_map Stations @relation(fields:[station_id], references: [device_id])
+
+  @@unique([timestamp, station_id])
+}
+
+model Rainfall{
+  id      Int      @id @default(autoincrement())
+  timestamp DateTime
+  station_id String
+  value Float
+  // sensor_map Stations @relation(fields:[station_id], references: [device_id])
+
+  @@unique([timestamp, station_id])
+}
+model Winddir {
+  id      Int      @id @default(autoincrement())
+  timestamp DateTime
+  station_id String
+  value Float
+  // sensor_map Stations @relation(fields:[station_id], references: [device_id])
+
+  @@unique([timestamp, station_id])
+}
+
+model Windspeed {
+  id      Int      @id @default(autoincrement())
+  timestamp DateTime
+  station_id String
+  value Float
+  // station_fk Stations? @relation(fields : [stationid], references: [id])
+  // stationid Int?
+
+  @@unique([timestamp, station_id])
+}
+
+
+model Stations {
+  id Int @id @default(autoincrement())
+  device_id String 
+  name String
+  latitude Float @default(0)
+  longitude Float @default(0)
+  reading_type String
+  reading_unit String
+  // station_id Rainfall @relation(fields: [device_id], references: [station_id])
+  // windspeed_fk Windspeed[]
+
+  @@unique([device_id, reading_type])
+}
